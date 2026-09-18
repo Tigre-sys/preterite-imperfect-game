@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preterite vs. Imperfect Master Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-image: url('https://drive.google.com/uc?export=view&id=17XfDAqwosgeFPXYgKmqf9K5IffF4sEqM');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.97);
+            border: 8px solid #000;
+            box-shadow: 0 0 0 3px #ffff00, 0 15px 40px rgba(0, 0, 0, 0.5);
+            max-width: 550px;
+            width: 90%;
+            padding: 35px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        h1 {
+            color: #1f3372;
+            font-size: 2.5em;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-shadow: 3px 3px 0px #ffff00;
+            margin-bottom: 10px;
+        }
+        .subtitle { color: #00674a; font-size: 1.2em; font-weight: 700; margin-bottom: 20px; }
+        .modes-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 20px 0; }
+        button {
+            padding: 12px 15px;
+            border: 4px solid #000;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: 'Fredoka', sans-serif;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+        }
+        .mode-btn {
+            background: linear-gradient(135deg, #ffff00 0%, #ffa500 100%);
+            color: #1f3372;
+        }
+        .mode-btn:hover {
+            background: linear-gradient(135deg, #ffff33 0%, #ffb833 100%);
+            transform: translateY(-2px);
+        }
+        .mode-btn div { font-size: 1.5em; margin-bottom: 5px; }
+        .question-card {
+            background: #fff;
+            padding: 20px;
+            border: 5px solid #000;
+            margin: 15px 0;
+            border-left: 8px solid #1f3372;
+            box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.2);
+        }
+        .question-text { font-size: 1.1em; color: #333; margin-bottom: 15px; font-weight: 700; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0; }
+        .option {
+            padding: 15px;
+            border: 4px solid #000;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .option.preterite { background: #ffff00; color: #1f3372; }
+        .option.imperfect { background: #00ff00; color: #00674a; }
+        .option.correct { background: #00ff00; animation: pulse 0.5s ease; }
+        .option.incorrect { background: #ff3333; color: #fff; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            display: none;
+            border: 4px solid #000;
+            font-weight: 600;
+        }
+        .feedback.show { display: block; }
+        .feedback.correct { background: #d4ffb8; color: #006400; }
+        .feedback.incorrect { background: #ff9999; color: #660000; }
+        .menu-screen { display: none; }
+        .menu-screen.active { display: block; }
+        .game-screen { display: none; }
+        .game-screen.active { display: block; }
+        .results-screen { display: none; }
+        .results-screen.active { display: block; }
+        @media (max-width: 600px) {
+            .modes-grid { grid-template-columns: 1fr; }
+            .options { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="menu-screen active" id="menuScreen">
+            <h1>⚡ Preterite vs. Imperfect ⚡</h1>
+            <p class="subtitle">Master Spanish Past Tenses</p>
+            <div class="modes-grid">
+                <button class="mode-btn" onclick="startGame('signals')">
+                    <div>🔑</div>Signals
+                </button>
+                <button class="mode-btn" onclick="startGame('sentences')">
+                    <div>📝</div>Sentences
+                </button>
+                <button class="mode-btn" onclick="startGame('meanings')">
+                    <div>🔀</div>Meanings
+                </button>
+            </div>
+        </div>
+
+        <div class="game-screen" id="gameScreen">
+            <h2 id="modeTitle"></h2>
+            <div style="margin: 12px 0; font-weight: 700; background: #ffff00; padding: 10px; border: 3px solid #000;">
+                Score: <span id="score">0</span>/<span id="total">10</span>
+            </div>
+            <div class="question-card">
+                <div class="question-text" id="questionText"></div>
+                <div class="options" id="optionsContainer"></div>
+                <div class="feedback" id="feedback"></div>
+                <button onclick="nextQuestion()" id="nextBtn" style="width: 100%; margin-top: 15px; display: none;">Next →</button>
+                <button onclick="backToMenu()" style="width: 100%; margin-top: 8px;">← Menu</button>
+            </div>
+        </div>
+
+        <div class="results-screen" id="resultsScreen">
+            <h1>🎉 GAME OVER! 🎉</h1>
+            <div style="font-size: 3.5em; margin: 15px 0; text-align: center;" id="resultEmoji"></div>
+            <div style="font-size: 2.5em; color: #1f3372; text-align: center; margin: 15px 0;" id="finalScore"></div>
+            <div style="font-size: 1.3em; margin: 15px 0; color: #333; background: #ffff00; padding: 12px; border: 3px solid #000; text-align: center;" id="resultMessage"></div>
+            <button onclick="backToMenu()" style="width: 100%; background: #1f3372; color: #ffff00;">⚡ Play Again ⚡</button>
+        </div>
+    </div>
+
+    <script>
+        const gameData = {
+            signals: {
+                title: '🔑 Signal Words Challenge',
+                questions: [
+                    { question: 'Which tense does "ayer por la mañana" signal?', answer: 'Preterite', explanation: 'Preterite - specific time reference.' },
+                    { question: 'Which tense does "a menudo" signal?', answer: 'Imperfect', explanation: 'Imperfect - habitual action.' },
+                    { question: 'Which tense does "de vez en cuando" signal?', answer: 'Imperfect', explanation: 'Imperfect - repeated action.' },
+                    { question: 'Which tense does "el año pasado" signal?', answer: 'Preterite', explanation: 'Preterite - bounded time period.' },
+                    { question: 'Which tense does "todos los días" signal?', answer: 'Imperfect', explanation: 'Imperfect - every day routine.' },
+                    { question: 'Which tense does "anoche" signal?', answer: 'Preterite', explanation: 'Preterite - last night.' },
+                    { question: 'Which tense does "siempre" signal?', answer: 'Imperfect', explanation: 'Imperfect - always/ongoing pattern.' },
+                    { question: 'Which tense does "hace dos días" signal?', answer: 'Preterite', explanation: 'Preterite - two days ago.' },
+                    { question: 'Which tense does "frecuentemente" signal?', answer: 'Imperfect', explanation: 'Imperfect - frequently.' },
+                    { question: 'Which tense does "la semana pasada" signal?', answer: 'Preterite', explanation: 'Preterite - last week.' }
+                ]
+            },
+            sentences: {
+                title: '📝 Sentence Tense Challenge',
+                questions: [
+                    { question: 'Juan _____ (comer) cuando llegaste.', answer: 'Imperfect', explanation: 'Imperfect - was eating when you arrived.' },
+                    { question: 'Cuando yo _____ (ser) niño, jugaba tenis.', answer: 'Imperfect', explanation: 'Imperfect - being a child.' },
+                    { question: 'Ayer, María _____ (comprar) un libro.', answer: 'Preterite', explanation: 'Preterite - "Ayer" signals completed action.' },
+                    { question: '_____ (ser) las cuatro cuando empezó a llover.', answer: 'Imperfect', explanation: 'Imperfect - time-telling in past.' },
+                    { question: 'De repente, yo me _____ (enfermar).', answer: 'Preterite', explanation: 'Preterite - sudden change.' },
+                    { question: 'Nosotros siempre _____ (hacer) excursiones.', answer: 'Imperfect', explanation: 'Imperfect - habitual actions.' },
+                    { question: 'Él se _____ (enterar) del error anoche.', answer: 'Preterite', explanation: 'Preterite - finding out.' },
+                    { question: 'Los estudiantes _____ (estudiar) cuando sonó.', answer: 'Imperfect', explanation: 'Imperfect - interrupted action.' },
+                    { question: 'El mar _____ (estar) muy tranquilo.', answer: 'Imperfect', explanation: 'Imperfect - background description.' },
+                    { question: 'Ayer yo _____ (recibir) el regalo.', answer: 'Preterite', explanation: 'Preterite - specific time.' }
+                ]
+            },
+            meanings: {
+                title: '🔀 Meaning Change Challenge',
+                questions: [
+                    { question: '"Conocí a la profesora ayer." What tense?', answer: 'Preterite', explanation: 'Preterite = met (for first time).' },
+                    { question: '"Supimos la noticia anoche." What tense?', answer: 'Preterite', explanation: 'Preterite = found out the news.' },
+                    { question: '"Tuve el regalo." What tense?', answer: 'Preterite', explanation: 'Preterite = received.' },
+                    { question: 'Which verb changes meaning? A) hablar B) conocer C) comer', answer: 'Preterite', explanation: 'B) Conocer = met vs. knew.' },
+                    { question: '"Podía hacerlo." What does this mean?', answer: 'Imperfect', explanation: 'Imperfect = could/was able to generally.' },
+                    { question: '"Quería ir pero no pude." What happened?', answer: 'Preterite', explanation: 'Preterite = actually couldn\'t.' },
+                    { question: 'Difference: "Sabía" vs "Supe"?', answer: 'Imperfect', explanation: 'Imperfect = knew. Preterite = found out.' },
+                    { question: 'Imperfect "tener" means?', answer: 'Imperfect', explanation: 'Imperfect = to have/possess.' },
+                    { question: '"Quise ayudarte" means?', answer: 'Preterite', explanation: 'Preterite = tried/attempted to help.' },
+                    { question: 'Which is CORRECT? C) Supe = found out', answer: 'Preterite', explanation: 'Preterite = found out.' }
+                ]
+            }
+        };
+
+        let currentMode = null;
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedAnswer = null;
+
+        function startGame(mode) {
+            currentMode = mode;
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('modeTitle').textContent = gameData[mode].title;
+            document.getElementById('total').textContent = gameData[mode].questions.length;
+            document.getElementById('menuScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const question = gameData[currentMode].questions[currentQuestion];
+            selectedAnswer = null;
+
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('feedback').classList.remove('show');
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('score').textContent = score;
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            ['Preterite', 'Imperfect'].forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option ' + option.toLowerCase();
+                btn.textContent = option;
+                btn.onclick = () => selectAnswer(option, question);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(answer, question) {
+            if (selectedAnswer) return;
+            selectedAnswer = answer;
+
+            const isCorrect = answer === question.answer;
+            const feedbackEl = document.getElementById('feedback');
+            feedbackEl.classList.add('show');
+
+            if (isCorrect) {
+                feedbackEl.classList.remove('incorrect');
+                feedbackEl.classList.add('correct');
+                feedbackEl.innerHTML = '✅ CORRECT!<br><br>' + question.explanation;
+                score++;
+                document.getElementById('score').textContent = score;
+                document.querySelectorAll('.option').forEach(btn => {
+                    if (btn.textContent === answer) btn.classList.add('correct');
+                });
+            } else {
+                feedbackEl.classList.remove('correct');
+                feedbackEl.classList.add('incorrect');
+                feedbackEl.innerHTML = '❌ NOT QUITE!<br><br>Answer: <strong>' + question.answer + '</strong><br><br>' + question.explanation;
+                document.querySelectorAll('.option').forEach(btn => {
+                    if (btn.textContent === question.answer) btn.classList.add('correct');
+                    else if (btn.textContent === answer) btn.classList.add('incorrect');
+                });
+            }
+
+            document.querySelectorAll('.option').forEach(btn => btn.style.pointerEvents = 'none');
+            document.getElementById('nextBtn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            const questions = gameData[currentMode].questions;
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const total = gameData[currentMode].questions.length;
+            const percentage = Math.round((score / total) * 100);
+
+            document.getElementById('finalScore').textContent = score + ' / ' + total;
+            
+            let emoji, message;
+            if (percentage === 100) {
+                emoji = '🏆';
+                message = 'PERFECT! You\'ve mastered preterite vs. imperfect!';
+            } else if (percentage >= 80) {
+                emoji = '🌟';
+                message = 'EXCELLENT WORK! You know your stuff!';
+            } else if (percentage >= 60) {
+                emoji = '👍';
+                message = 'GOOD JOB! Keep practicing!';
+            } else {
+                emoji = '📚';
+                message = 'KEEP STUDYING! More practice needed!';
+            }
+
+            document.getElementById('resultEmoji').textContent = emoji;
+            document.getElementById('resultMessage').textContent = message;
+            
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('resultsScreen').classList.add('active');
+        }
+
+        function backToMenu() {
+            document.getElementById('menuScreen').classList.add('active');
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('resultsScreen').classList.remove('active');
+            currentMode = null;
+        }
+    </script>
+</body>
+</html>
